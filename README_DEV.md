@@ -27,6 +27,7 @@
 ## 設定
 - `kanjiColorize.colors.g1` ～ `g6`：学年ごとの色
 - `kanjiColorize.colors.other`：教育漢字外の色（既定：赤）
+- `kanjiColorize.textColor`：背景色適用時の文字色（空欄でテーマどおり）
 - `kanjiColorize.opacity`：不透明度（0～1、既定：0.6）
 
 ## データ出典

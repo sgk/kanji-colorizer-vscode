@@ -50,12 +50,20 @@ function loadKanjiSets(context: vscode.ExtensionContext): Record<Exclude<GradeKe
 function makeDecorations() {
   const cfg = vscode.workspace.getConfiguration('kanjiColorize');
   const opacity = Math.min(Math.max(Number(cfg.get('opacity', 0.6)), 0), 1);
+  const textColorSetting = cfg.get<string>('textColor', '#000000');
+  const textColor = typeof textColorSetting === 'string' && textColorSetting.trim().length > 0
+    ? textColorSetting.trim()
+    : null;
   const make = (colorSettingKey: string, fallback: string) => {
     const color = String(cfg.get(colorSettingKey) ?? fallback);
-    return vscode.window.createTextEditorDecorationType({
+    const options: vscode.DecorationRenderOptions = {
       backgroundColor: hexToRgba(color, opacity),
       borderRadius: '3px'
-    });
+    };
+    if (textColor) {
+      options.color = textColor;
+    }
+    return vscode.window.createTextEditorDecorationType(options);
   };
   decorations = {
     g1: make('colors.g1', '#fffa99'),

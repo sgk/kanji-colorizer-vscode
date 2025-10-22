@@ -203,6 +203,11 @@
           "default": "#ef4444",
           "description": "教育漢字以外（範囲外）の色（既定：赤）"
         },
+        "kanjiColorize.textColor": {
+          "type": "string",
+          "default": "#000000",
+          "description": "背景色を適用した文字の色（空欄にするとテーマの文字色を使用）"
+        },
         "kanjiColorize.opacity": {
           "type": "number",
           "default": 0.6,
