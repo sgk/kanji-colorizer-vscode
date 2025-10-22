@@ -1,9 +1,22 @@
 {
   "name": "kanji-grade-colorizer",
   "displayName": "Kanji Grade Colorizer",
-  "description": "小学校の学年ごとに漢字を色分け表示（ファイル単位トグル、既定OFF／範囲外は赤）。",
+  "description": "小学校の学年ごとに漢字を色分け表示（ファイル単位トグル）。",
+  "author": {
+    "name": "144Lab"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sgk/kanji-colorizer-vscode.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sgk/kanji-colorizer-vscode/issues"
+  },
+  "homepage": "https://github.com/sgk/kanji-colorizer-vscode#readme",
   "version": "0.2.0",
-  "publisher": "your-name",
+  "publisher": "144Lab",
+  "icon": "media/button_off.svg",
   "engines": {
     "vscode": "^1.90.0"
   },
@@ -20,11 +33,11 @@
     "commands": [
       {
         "command": "kanjiColorize.toggleFile",
-        "title": "Kanji Colorize: このファイルでオン/オフ"
+        "title": "小学校の漢字: このファイルでオン/オフ"
       },
       {
         "command": "kanjiColorize.button.off",
-        "title": "Kanji Colorize: OFF",
+        "title": "小学校の漢字: オフ",
         "icon": {
           "dark": "media/button_off.svg",
           "light": "media/button_off.svg"
@@ -32,7 +45,7 @@
       },
       {
         "command": "kanjiColorize.button.unknown",
-        "title": "Kanji Colorize: 漢字以外",
+        "title": "小学校の漢字: 漢字以外",
         "icon": {
           "dark": "media/button_unknown.svg",
           "light": "media/button_unknown.svg"
@@ -40,7 +53,7 @@
       },
       {
         "command": "kanjiColorize.button.g1",
-        "title": "Kanji Colorize: 1年生",
+        "title": "小学校の漢字: 1年生",
         "icon": {
           "dark": "media/button_g1.svg",
           "light": "media/button_g1.svg"
@@ -48,7 +61,7 @@
       },
       {
         "command": "kanjiColorize.button.g2",
-        "title": "Kanji Colorize: 2年生",
+        "title": "小学校の漢字: 2年生",
         "icon": {
           "dark": "media/button_g2.svg",
           "light": "media/button_g2.svg"
@@ -56,7 +69,7 @@
       },
       {
         "command": "kanjiColorize.button.g3",
-        "title": "Kanji Colorize: 3年生",
+        "title": "小学校の漢字: 3年生",
         "icon": {
           "dark": "media/button_g3.svg",
           "light": "media/button_g3.svg"
@@ -64,7 +77,7 @@
       },
       {
         "command": "kanjiColorize.button.g4",
-        "title": "Kanji Colorize: 4年生",
+        "title": "小学校の漢字: 4年生",
         "icon": {
           "dark": "media/button_g4.svg",
           "light": "media/button_g4.svg"
@@ -72,7 +85,7 @@
       },
       {
         "command": "kanjiColorize.button.g5",
-        "title": "Kanji Colorize: 5年生",
+        "title": "小学校の漢字: 5年生",
         "icon": {
           "dark": "media/button_g5.svg",
           "light": "media/button_g5.svg"
@@ -80,7 +93,7 @@
       },
       {
         "command": "kanjiColorize.button.g6",
-        "title": "Kanji Colorize: 6年生",
+        "title": "小学校の漢字: 6年生",
         "icon": {
           "dark": "media/button_g6.svg",
           "light": "media/button_g6.svg"
@@ -88,7 +101,7 @@
       },
       {
         "command": "kanjiColorize.button.other",
-        "title": "Kanji Colorize: 教育漢字外",
+        "title": "小学校の漢字: 教育漢字外",
         "icon": {
           "dark": "media/button_other.svg",
           "light": "media/button_other.svg"
@@ -205,6 +218,12 @@
     "build": "tsc",
     "vscode:prepublish": "npm run build"
   },
+  "keywords": [
+    "kanji",
+    "japanese",
+    "colorizer",
+    "education"
+  ],
   "devDependencies": {
     "@types/vscode": "^1.90.0",
     "@types/node": "^20.0.0",
