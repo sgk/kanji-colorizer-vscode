@@ -1,0 +1,14 @@
+.vscode/
+.git/
+.gitignore
+AGENTS.md
+README_DEV.md
+Makefile
+tsconfig.json
+*.tsbuildinfo
+*.log
+node_modules/
+src/
+kanji-grade-colorizer-*.vsix
+.vscode-test/
+coverage/
