@@ -1,0 +1,101 @@
+{
+  "name": "kanji-grade-colorizer",
+  "displayName": "Kanji Grade Colorizer",
+  "description": "小学校の学年ごとに漢字を色分け表示（ファイル単位トグル、既定OFF／範囲外は赤）。",
+  "version": "0.2.0",
+  "publisher": "your-name",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Linters",
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished",
+    "onCommand:kanjiColorize.toggleFile"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "kanjiColorize.toggleFile",
+        "title": "Kanji Colorize: このファイルでオン/オフ"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "kanjiColorize.toggleFile",
+          "group": "navigation@99",
+          "when": "editorIsOpen"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "kanjiColorize.toggleFile",
+          "group": "navigation",
+          "when": "editorTextFocus"
+        }
+      ]
+    },
+    "configuration": {
+      "type": "object",
+      "title": "Kanji Grade Colorizer",
+      "properties": {
+        "kanjiColorize.colors.g1": {
+          "type": "string",
+          "default": "#3b82f6",
+          "description": "1年生の色"
+        },
+        "kanjiColorize.colors.g2": {
+          "type": "string",
+          "default": "#10b981",
+          "description": "2年生の色"
+        },
+        "kanjiColorize.colors.g3": {
+          "type": "string",
+          "default": "#f59e0b",
+          "description": "3年生の色"
+        },
+        "kanjiColorize.colors.g4": {
+          "type": "string",
+          "default": "#8b5cf6",
+          "description": "4年生の色"
+        },
+        "kanjiColorize.colors.g5": {
+          "type": "string",
+          "default": "#14b8a6",
+          "description": "5年生の色"
+        },
+        "kanjiColorize.colors.g6": {
+          "type": "string",
+          "default": "#22c55e",
+          "description": "6年生の色"
+        },
+        "kanjiColorize.colors.other": {
+          "type": "string",
+          "default": "#ef4444",
+          "description": "教育漢字以外（範囲外）の色（既定：赤）"
+        },
+        "kanjiColorize.opacity": {
+          "type": "number",
+          "default": 0.25,
+          "minimum": 0,
+          "maximum": 1,
+          "description": "背景色の不透明度"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -w",
+    "build": "tsc",
+    "vscode:prepublish": "npm run build"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.90.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}
