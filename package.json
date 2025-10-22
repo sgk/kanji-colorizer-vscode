@@ -170,32 +170,32 @@
       "properties": {
         "kanjiColorize.colors.g1": {
           "type": "string",
-          "default": "#3b82f6",
+          "default": "#fffa99",
           "description": "1年生の色"
         },
         "kanjiColorize.colors.g2": {
           "type": "string",
-          "default": "#10b981",
+          "default": "#ffd199",
           "description": "2年生の色"
         },
         "kanjiColorize.colors.g3": {
           "type": "string",
-          "default": "#f59e0b",
+          "default": "#ff9999",
           "description": "3年生の色"
         },
         "kanjiColorize.colors.g4": {
           "type": "string",
-          "default": "#8b5cf6",
+          "default": "#99ffce",
           "description": "4年生の色"
         },
         "kanjiColorize.colors.g5": {
           "type": "string",
-          "default": "#14b8a6",
+          "default": "#a399ff",
           "description": "5年生の色"
         },
         "kanjiColorize.colors.g6": {
           "type": "string",
-          "default": "#22c55e",
+          "default": "#d699ff",
           "description": "6年生の色"
         },
         "kanjiColorize.colors.other": {

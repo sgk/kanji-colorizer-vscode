@@ -58,12 +58,12 @@ function makeDecorations() {
     });
   };
   decorations = {
-    g1: make('colors.g1', '#3b82f6'),
-    g2: make('colors.g2', '#10b981'),
-    g3: make('colors.g3', '#f59e0b'),
-    g4: make('colors.g4', '#8b5cf6'),
-    g5: make('colors.g5', '#14b8a6'),
-    g6: make('colors.g6', '#22c55e'),
+    g1: make('colors.g1', '#fffa99'),
+    g2: make('colors.g2', '#ffd199'),
+    g3: make('colors.g3', '#f99'),
+    g4: make('colors.g4', '#99ffce'),
+    g5: make('colors.g5', '#a399ff'),
+    g6: make('colors.g6', '#d699ff'),
     other: make('colors.other', '#ef4444') // 範囲外：赤
   };
 }

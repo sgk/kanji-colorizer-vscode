@@ -24,7 +24,7 @@ Kanji Grade Colorizer は、VS Code 上で小学校の学年別に漢字へ背�
 
 | 設定キー | 説明 | 既定値 |
 | --- | --- | --- |
-| `kanjiColorize.colors.g1`〜`g6` | 学年ごとの背景色 | 1年生: `#3b82f6` など |
+| `kanjiColorize.colors.g1`〜`g6` | 学年ごとの背景色 | 1年生: `#fffa99`、2年生: `#ffd199`、3年生: `#ff9999`、4年生: `#99ffce`、5年生: `#a399ff`、6年生: `#d699ff` |
 | `kanjiColorize.colors.other` | 教育漢字外の背景色 | `#ef4444` |
 | `kanjiColorize.opacity` | 背景色の不透明度 (0〜1) | `0.6` |
 
