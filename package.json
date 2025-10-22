@@ -21,14 +21,126 @@
       {
         "command": "kanjiColorize.toggleFile",
         "title": "Kanji Colorize: このファイルでオン/オフ"
+      },
+      {
+        "command": "kanjiColorize.button.off",
+        "title": "Kanji Colorize: OFF",
+        "icon": {
+          "dark": "media/button_off.svg",
+          "light": "media/button_off.svg"
+        }
+      },
+      {
+        "command": "kanjiColorize.button.unknown",
+        "title": "Kanji Colorize: 漢字以外",
+        "icon": {
+          "dark": "media/button_unknown.svg",
+          "light": "media/button_unknown.svg"
+        }
+      },
+      {
+        "command": "kanjiColorize.button.g1",
+        "title": "Kanji Colorize: 1年生",
+        "icon": {
+          "dark": "media/button_g1.svg",
+          "light": "media/button_g1.svg"
+        }
+      },
+      {
+        "command": "kanjiColorize.button.g2",
+        "title": "Kanji Colorize: 2年生",
+        "icon": {
+          "dark": "media/button_g2.svg",
+          "light": "media/button_g2.svg"
+        }
+      },
+      {
+        "command": "kanjiColorize.button.g3",
+        "title": "Kanji Colorize: 3年生",
+        "icon": {
+          "dark": "media/button_g3.svg",
+          "light": "media/button_g3.svg"
+        }
+      },
+      {
+        "command": "kanjiColorize.button.g4",
+        "title": "Kanji Colorize: 4年生",
+        "icon": {
+          "dark": "media/button_g4.svg",
+          "light": "media/button_g4.svg"
+        }
+      },
+      {
+        "command": "kanjiColorize.button.g5",
+        "title": "Kanji Colorize: 5年生",
+        "icon": {
+          "dark": "media/button_g5.svg",
+          "light": "media/button_g5.svg"
+        }
+      },
+      {
+        "command": "kanjiColorize.button.g6",
+        "title": "Kanji Colorize: 6年生",
+        "icon": {
+          "dark": "media/button_g6.svg",
+          "light": "media/button_g6.svg"
+        }
+      },
+      {
+        "command": "kanjiColorize.button.other",
+        "title": "Kanji Colorize: 教育漢字外",
+        "icon": {
+          "dark": "media/button_other.svg",
+          "light": "media/button_other.svg"
+        }
       }
     ],
     "menus": {
       "editor/title": [
         {
-          "command": "kanjiColorize.toggleFile",
+          "command": "kanjiColorize.button.off",
           "group": "navigation@99",
-          "when": "editorIsOpen"
+          "when": "editorIsOpen && kanjiColorize.buttonLabel == 'off'"
+        },
+        {
+          "command": "kanjiColorize.button.unknown",
+          "group": "navigation@99",
+          "when": "editorIsOpen && kanjiColorize.buttonLabel == 'unknown'"
+        },
+        {
+          "command": "kanjiColorize.button.g1",
+          "group": "navigation@99",
+          "when": "editorIsOpen && kanjiColorize.buttonLabel == 'g1'"
+        },
+        {
+          "command": "kanjiColorize.button.g2",
+          "group": "navigation@99",
+          "when": "editorIsOpen && kanjiColorize.buttonLabel == 'g2'"
+        },
+        {
+          "command": "kanjiColorize.button.g3",
+          "group": "navigation@99",
+          "when": "editorIsOpen && kanjiColorize.buttonLabel == 'g3'"
+        },
+        {
+          "command": "kanjiColorize.button.g4",
+          "group": "navigation@99",
+          "when": "editorIsOpen && kanjiColorize.buttonLabel == 'g4'"
+        },
+        {
+          "command": "kanjiColorize.button.g5",
+          "group": "navigation@99",
+          "when": "editorIsOpen && kanjiColorize.buttonLabel == 'g5'"
+        },
+        {
+          "command": "kanjiColorize.button.g6",
+          "group": "navigation@99",
+          "when": "editorIsOpen && kanjiColorize.buttonLabel == 'g6'"
+        },
+        {
+          "command": "kanjiColorize.button.other",
+          "group": "navigation@99",
+          "when": "editorIsOpen && kanjiColorize.buttonLabel == 'other'"
         }
       ],
       "editor/context": [
@@ -80,7 +192,7 @@
         },
         "kanjiColorize.opacity": {
           "type": "number",
-          "default": 0.25,
+          "default": 0.6,
           "minimum": 0,
           "maximum": 1,
           "description": "背景色の不透明度"

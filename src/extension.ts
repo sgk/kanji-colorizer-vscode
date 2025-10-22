@@ -8,6 +8,35 @@ let decorations: Record<GradeKey, vscode.TextEditorDecorationType> | null = null
 let gradeRegex: Partial<Record<GradeKey, RegExp>> = {};
 let knownKanjiSet: Set<string> = new Set();
 let debounceTimer: NodeJS.Timeout | null = null;
+let gradeByKanji: Map<string, GradeKey> = new Map();
+let statusItem: vscode.StatusBarItem | null = null;
+
+const buttonCommandIds = {
+  off: 'kanjiColorize.button.off',
+  unknown: 'kanjiColorize.button.unknown',
+  g1: 'kanjiColorize.button.g1',
+  g2: 'kanjiColorize.button.g2',
+  g3: 'kanjiColorize.button.g3',
+  g4: 'kanjiColorize.button.g4',
+  g5: 'kanjiColorize.button.g5',
+  g6: 'kanjiColorize.button.g6',
+  other: 'kanjiColorize.button.other'
+} as const;
+
+type ButtonLabel = keyof typeof buttonCommandIds;
+
+const gradeLabel: Record<GradeKey, string> = {
+  g1: '1年生の漢字',
+  g2: '2年生の漢字',
+  g3: '3年生の漢字',
+  g4: '4年生の漢字',
+  g5: '5年生の漢字',
+  g6: '6年生の漢字',
+  other: '教育漢字外の漢字'
+};
+
+const buttonLabelContextKey = 'kanjiColorize.buttonLabel';
+let currentButtonLabel: ButtonLabel | null = null;
 
 // デフォルト OFF。オンにしたファイル URI を保持。
 const enabledFiles = new Set<string>();
@@ -20,7 +49,7 @@ function loadKanjiSets(context: vscode.ExtensionContext): Record<Exclude<GradeKe
 
 function makeDecorations() {
   const cfg = vscode.workspace.getConfiguration('kanjiColorize');
-  const opacity = Math.min(Math.max(Number(cfg.get('opacity', 0.25)), 0), 1);
+  const opacity = Math.min(Math.max(Number(cfg.get('opacity', 0.6)), 0), 1);
   const make = (colorSettingKey: string, fallback: string) => {
     const color = String(cfg.get(colorSettingKey) ?? fallback);
     return vscode.window.createTextEditorDecorationType({
@@ -56,14 +85,24 @@ function rebuildRegex(context: vscode.ExtensionContext) {
   const sets = loadKanjiSets(context);
   const rx: Partial<Record<GradeKey, RegExp>> = {};
   knownKanjiSet = new Set<string>();
+  gradeByKanji = new Map();
   (['g1','g2','g3','g4','g5','g6'] as GradeKey[]).forEach(k => {
     const s = (sets as any)[k];
     if (typeof s === 'string' && s.length) {
       rx[k] = buildRegexFromSet(s);
-      for (const ch of s) knownKanjiSet.add(ch);
+      for (const ch of s) {
+        knownKanjiSet.add(ch);
+        gradeByKanji.set(ch, k);
+      }
     }
   });
   gradeRegex = rx;
+}
+
+function setButtonLabel(label: ButtonLabel) {
+  if (currentButtonLabel === label) return;
+  currentButtonLabel = label;
+  void vscode.commands.executeCommand('setContext', buttonLabelContextKey, label);
 }
 
 function isFileOn(editor = vscode.window.activeTextEditor): boolean {
@@ -86,6 +125,8 @@ function updateActiveEditor(editor: vscode.TextEditor | undefined) {
   if (!editor || !decorations) return;
   if (!isFileOn(editor)) {
     clearAllDecorations(editor);
+    statusItem?.hide();
+    setButtonLabel('off');
     return;
   }
 
@@ -127,6 +168,7 @@ function updateActiveEditor(editor: vscode.TextEditor | undefined) {
     const deco = decorations![k];
     if (deco) editor.setDecorations(deco, perGradeRanges[k]);
   });
+  updateCursorStatus(editor);
 }
 
 function scheduleUpdate(editor = vscode.window.activeTextEditor) {
@@ -134,48 +176,115 @@ function scheduleUpdate(editor = vscode.window.activeTextEditor) {
   debounceTimer = setTimeout(() => updateActiveEditor(editor), 80);
 }
 
+function updateCursorStatus(editor = vscode.window.activeTextEditor) {
+  if (!statusItem) return;
+  if (!editor || !isFileOn(editor)) {
+    statusItem.hide();
+    setButtonLabel('off');
+    return;
+  }
+
+  const activePos = editor.selection.active;
+  if (activePos.line >= editor.document.lineCount) {
+    statusItem.hide();
+    setButtonLabel('unknown');
+    return;
+  }
+  const line = editor.document.lineAt(activePos.line).text;
+  if (activePos.character >= line.length) {
+    statusItem.hide();
+    setButtonLabel('unknown');
+    return;
+  }
+
+  const ch = line[activePos.character];
+  let gradeKey: GradeKey | undefined = gradeByKanji.get(ch);
+  if (!gradeKey && isHan(ch) && !knownKanjiSet.has(ch)) {
+    gradeKey = 'other';
+  }
+
+  if (gradeKey) {
+    statusItem.text = `$(book) ${gradeLabel[gradeKey]}`;
+    statusItem.tooltip = `${ch} は ${gradeLabel[gradeKey]}`;
+    statusItem.show();
+    setButtonLabel(gradeKey);
+  } else {
+    statusItem.hide();
+    setButtonLabel('unknown');
+  }
+}
+
 export function activate(context: vscode.ExtensionContext) {
   makeDecorations();
   rebuildRegex(context);
+  statusItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
+  statusItem.name = 'Kanji Grade';
+  context.subscriptions.push(statusItem);
+  setButtonLabel('off');
+
+  const toggle = () => {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) return;
+    const key = editor.document.uri.toString();
+    if (enabledFiles.has(key)) {
+      enabledFiles.delete(key);
+      clearAllDecorations(editor);
+      statusItem?.hide();
+      setButtonLabel('off');
+      vscode.window.setStatusBarMessage('Kanji Colorize: OFF (this file)', 1200);
+    } else {
+      enabledFiles.add(key);
+      setButtonLabel('unknown');
+      scheduleUpdate(editor);
+      updateCursorStatus(editor);
+      vscode.window.setStatusBarMessage('Kanji Colorize: ON (this file)', 1200);
+    }
+  };
 
   context.subscriptions.push(
-    vscode.commands.registerCommand('kanjiColorize.toggleFile', () => {
-      const editor = vscode.window.activeTextEditor;
-      if (!editor) return;
-      const key = editor.document.uri.toString();
-      if (enabledFiles.has(key)) {
-        enabledFiles.delete(key);
-        clearAllDecorations(editor);
-        vscode.window.setStatusBarMessage('Kanji Colorize: OFF (this file)', 1200);
-      } else {
-        enabledFiles.add(key);
-        scheduleUpdate(editor);
-        vscode.window.setStatusBarMessage('Kanji Colorize: ON (this file)', 1200);
-      }
+    vscode.commands.registerCommand('kanjiColorize.toggleFile', toggle),
+    vscode.window.onDidChangeActiveTextEditor(editor => {
+      scheduleUpdate(editor ?? undefined);
+      updateCursorStatus(editor ?? undefined);
     }),
-
-    vscode.window.onDidChangeActiveTextEditor(() => scheduleUpdate()),
     vscode.workspace.onDidChangeTextDocument(e => {
       const editor = vscode.window.activeTextEditor;
       if (!editor) return;
       if (e.document.uri.toString() !== editor.document.uri.toString()) return;
       if (!isFileOn(editor)) return;
       scheduleUpdate(editor);
+      updateCursorStatus(editor);
     }),
     vscode.workspace.onDidCloseTextDocument(doc => {
       enabledFiles.delete(doc.uri.toString());
+      if (statusItem && vscode.window.activeTextEditor?.document.uri.toString() === doc.uri.toString()) {
+        statusItem.hide();
+        setButtonLabel('off');
+      }
+    }),
+    vscode.window.onDidChangeTextEditorSelection(e => {
+      if (e.textEditor !== vscode.window.activeTextEditor) return;
+      updateCursorStatus(e.textEditor);
     }),
     vscode.workspace.onDidChangeConfiguration(e => {
       if (e.affectsConfiguration('kanjiColorize')) {
         if (decorations) Object.values(decorations).forEach(d => d.dispose());
         makeDecorations();
         scheduleUpdate();
+        updateCursorStatus();
       }
     })
   );
+
+  (Object.values(buttonCommandIds) as string[]).forEach(id => {
+    context.subscriptions.push(vscode.commands.registerCommand(id, toggle));
+  });
 }
 
 export function deactivate() {
   if (decorations) Object.values(decorations).forEach(d => d.dispose());
   enabledFiles.clear();
+  statusItem?.dispose();
+  statusItem = null;
+  setButtonLabel('off');
 }
