@@ -3,25 +3,26 @@ import * as vscode from 'vscode';
 import {
   allGradeKeys,
   baseGradeKeys,
+  BaseGradeKey,
   GradeDefinitions,
   GradeKey,
-  getFallbackGradeDefinitions,
   loadGradeDefinitions
 } from './gradeConfig';
 import { generateGradeIcons } from './iconGenerator';
 
-let decorations: Record<GradeKey, vscode.TextEditorDecorationType> | null = null;
+let decorations: Partial<Record<GradeKey, vscode.TextEditorDecorationType>> = {};
 let gradeRegex: Partial<Record<GradeKey, RegExp>> = {};
 let knownKanjiSet: Set<string> = new Set();
 let debounceTimer: NodeJS.Timeout | null = null;
 let gradeByKanji: Map<string, GradeKey> = new Map();
 let statusItem: vscode.StatusBarItem | null = null;
-let gradeDefinitions: GradeDefinitions = getFallbackGradeDefinitions();
+let gradeDefinitions: GradeDefinitions = {};
 let activeGradeQuickPick: vscode.QuickPick<vscode.QuickPickItem & { grade: GradeKey }> | null = null;
 
 const buttonCommandIds = {
   off: 'kanjiColorize.button.off',
   unknown: 'kanjiColorize.button.unknown',
+  g0: 'kanjiColorize.button.g0',
   g1: 'kanjiColorize.button.g1',
   g2: 'kanjiColorize.button.g2',
   g3: 'kanjiColorize.button.g3',
@@ -29,6 +30,8 @@ const buttonCommandIds = {
   g5: 'kanjiColorize.button.g5',
   g6: 'kanjiColorize.button.g6',
   g7: 'kanjiColorize.button.g7',
+  g8: 'kanjiColorize.button.g8',
+  g9: 'kanjiColorize.button.g9',
   other: 'kanjiColorize.button.other'
 } as const;
 
@@ -39,6 +42,7 @@ const extensionActiveContextKey = 'kanjiColorize.isActive';
 let currentButtonLabel: ButtonLabel | null = null;
 const gradeVisibilityStateKey = 'kanjiColorize.enabledGrades';
 let gradeVisibility: Record<GradeKey, boolean> = {
+  g0: true,
   g1: true,
   g2: true,
   g3: true,
@@ -46,6 +50,8 @@ let gradeVisibility: Record<GradeKey, boolean> = {
   g5: true,
   g6: true,
   g7: true,
+  g8: true,
+  g9: true,
   other: true
 };
 
@@ -59,11 +65,11 @@ function makeDecorations() {
   const textColor = typeof textColorSetting === 'string' && textColorSetting.trim().length > 0
     ? textColorSetting.trim()
     : null;
-  const make = (grade: GradeKey) => {
-    const fallback = gradeDefinitions[grade]?.color ?? '#cccccc';
-    const color = String(cfg.get(`colors.${grade}`, fallback));
+  const make = (grade: GradeKey, color: string) => {
+    const configured = cfg.get(`colors.${grade}`, color);
+    const targetColor = typeof configured === 'string' && configured.trim().length > 0 ? configured : color;
     const options: vscode.DecorationRenderOptions = {
-      backgroundColor: hexToRgba(color, opacity),
+      backgroundColor: hexToRgba(targetColor, opacity),
       borderRadius: '3px'
     };
     if (textColor) {
@@ -71,16 +77,15 @@ function makeDecorations() {
     }
     return vscode.window.createTextEditorDecorationType(options);
   };
-  decorations = {
-    g1: make('g1'),
-    g2: make('g2'),
-    g3: make('g3'),
-    g4: make('g4'),
-    g5: make('g5'),
-    g6: make('g6'),
-    g7: make('g7'),
-    other: make('other') // 範囲外：赤
-  };
+  // 既存のデコレーションを破棄
+  Object.values(decorations).forEach(d => d?.dispose());
+  decorations = {};
+  const definedGrades = getDefinedGradeKeys();
+  definedGrades.forEach(grade => {
+    const def = gradeDefinitions[grade];
+    if (!def) return;
+    decorations[grade] = make(grade, def.color);
+  });
 }
 
 function hexToRgba(hex: string, alpha: number): string {
@@ -96,11 +101,19 @@ function buildRegexFromSet(chars: string): RegExp {
   return new RegExp(`[${cls}]`, 'g');
 }
 
+function getDefinedBaseGradeKeys(): BaseGradeKey[] {
+  return baseGradeKeys.filter((grade) => Boolean(gradeDefinitions[grade])) as BaseGradeKey[];
+}
+
+function getDefinedGradeKeys(): GradeKey[] {
+  return allGradeKeys.filter((grade) => Boolean(gradeDefinitions[grade])) as GradeKey[];
+}
+
 function rebuildRegex() {
   const rx: Partial<Record<GradeKey, RegExp>> = {};
   knownKanjiSet = new Set<string>();
   gradeByKanji = new Map();
-  baseGradeKeys.forEach(k => {
+  getDefinedBaseGradeKeys().forEach(k => {
     const chars = gradeDefinitions[k]?.characters ?? '';
     if (typeof chars === 'string' && chars.length) {
       rx[k] = buildRegexFromSet(chars);
@@ -137,6 +150,9 @@ function saveGradeVisibility(context: vscode.ExtensionContext) {
 }
 
 function isGradeEnabled(key: GradeKey): boolean {
+  if (!gradeDefinitions[key]) {
+    return false;
+  }
   return gradeVisibility[key] !== false;
 }
 
@@ -147,8 +163,12 @@ function isFileOn(editor = vscode.window.activeTextEditor): boolean {
 }
 
 function clearAllDecorations(editor?: vscode.TextEditor) {
-  if (!decorations || !editor) return;
-  Object.values(decorations).forEach(d => editor.setDecorations(d, []));
+  if (!editor) return;
+  Object.values(decorations).forEach(d => {
+    if (d) {
+      editor.setDecorations(d, []);
+    }
+  });
 }
 
 function isHan(ch: string): boolean {
@@ -157,7 +177,7 @@ function isHan(ch: string): boolean {
 }
 
 function updateActiveEditor(editor: vscode.TextEditor | undefined) {
-  if (!editor || !decorations) return;
+  if (!editor) return;
   if (!isFileOn(editor)) {
     clearAllDecorations(editor);
     statusItem?.hide();
@@ -165,21 +185,22 @@ function updateActiveEditor(editor: vscode.TextEditor | undefined) {
     return;
   }
 
-  const perGradeRanges = {} as Record<GradeKey, vscode.Range[]>;
-  allGradeKeys.forEach(k => { perGradeRanges[k] = []; });
+  const activeGrades = getDefinedGradeKeys();
+  const perGradeRanges: Partial<Record<GradeKey, vscode.Range[]>> = {};
+  activeGrades.forEach(k => { perGradeRanges[k] = []; });
 
   for (let i = 0; i < editor.document.lineCount; i++) {
     const line = editor.document.lineAt(i).text;
 
     // まず各学年を正規表現で拾う
-    baseGradeKeys.forEach((k) => {
+    getDefinedBaseGradeKeys().forEach((k) => {
       const rx = gradeRegex[k];
       if (!rx) return;
       rx.lastIndex = 0;
       let m: RegExpExecArray | null;
       while ((m = rx.exec(line))) {
         const col = m.index;
-        perGradeRanges[k].push(new vscode.Range(
+        perGradeRanges[k]?.push(new vscode.Range(
           new vscode.Position(i, col),
           new vscode.Position(i, col + 1)
         ));
@@ -187,22 +208,27 @@ function updateActiveEditor(editor: vscode.TextEditor | undefined) {
     });
 
     // 範囲外（常用漢字以外）= CJK漢字で、knownKanjiSet に含まれないもの
-    for (let col = 0; col < line.length; col++) {
-      const ch = line[col];
-      if (isHan(ch) && !knownKanjiSet.has(ch)) {
-        perGradeRanges.other.push(new vscode.Range(
-          new vscode.Position(i, col),
-          new vscode.Position(i, col + 1)
-        ));
+    if (gradeDefinitions.other) {
+      for (let col = 0; col < line.length; col++) {
+        const ch = line[col];
+        if (isHan(ch) && !knownKanjiSet.has(ch)) {
+          perGradeRanges.other?.push(new vscode.Range(
+            new vscode.Position(i, col),
+            new vscode.Position(i, col + 1)
+          ));
+        }
       }
     }
   }
 
-  allGradeKeys.forEach((k) => {
-    const deco = decorations![k];
-    if (deco) {
-      editor.setDecorations(deco, isGradeEnabled(k) ? perGradeRanges[k] : []);
+  activeGrades.forEach((k) => {
+    const deco = decorations[k];
+    if (!deco) return;
+    if (!isGradeEnabled(k)) {
+      editor.setDecorations(deco, []);
+      return;
     }
+    editor.setDecorations(deco, perGradeRanges[k] ?? []);
   });
   updateCursorStatus(editor);
 }
@@ -235,11 +261,11 @@ function updateCursorStatus(editor = vscode.window.activeTextEditor) {
 
   const ch = line[activePos.character];
   let gradeKey: GradeKey | undefined = gradeByKanji.get(ch);
-  if (!gradeKey && isHan(ch) && !knownKanjiSet.has(ch)) {
+  if (!gradeKey && gradeDefinitions.other && isHan(ch) && !knownKanjiSet.has(ch)) {
     gradeKey = 'other';
   }
 
-  if (gradeKey) {
+  if (gradeKey && gradeDefinitions[gradeKey]) {
     const label = gradeDefinitions[gradeKey]?.label ?? gradeKey;
     statusItem.text = `$(book) ${label}`;
     statusItem.tooltip = `${ch} は ${label}`;
@@ -298,16 +324,14 @@ export async function activate(context: vscode.ExtensionContext) {
     activeGradeQuickPick = quickPick;
     quickPick.canSelectMany = true;
     quickPick.placeholder = '色付けを有効にする学年を選択してください';
-    const items: GradeQuickPickItem[] = allGradeKeys.map(
+    const definedGrades = getDefinedGradeKeys();
+    const items: GradeQuickPickItem[] = definedGrades.map(
       (grade): GradeQuickPickItem => ({
         label: gradeDefinitions[grade]?.label ?? grade,
         picked: false,
         grade
       })
     );
-    quickPick.items = items;
-    quickPick.selectedItems = items.filter(item => isGradeEnabled(item.grade));
-
     const disposables: vscode.Disposable[] = [];
     const cleanup = () => {
       disposables.forEach(d => d.dispose());
@@ -316,6 +340,14 @@ export async function activate(context: vscode.ExtensionContext) {
         activeGradeQuickPick = null;
       }
     };
+
+    quickPick.items = items;
+    if (items.length === 0) {
+      vscode.window.setStatusBarMessage('Kanji Colorize: 利用可能な学年定義が見つかりません', 2000);
+      cleanup();
+      return;
+    }
+    quickPick.selectedItems = items.filter(item => isGradeEnabled(item.grade));
 
     disposables.push(quickPick.onDidAccept(async () => {
       const selected = new Set(quickPick.selectedItems.map(item => item.grade));
@@ -369,7 +401,6 @@ export async function activate(context: vscode.ExtensionContext) {
       if (e.affectsConfiguration('kanjiColorize')) {
         gradeDefinitions = loadGradeDefinitions(context);
         rebuildRegex();
-        if (decorations) Object.values(decorations).forEach(d => d.dispose());
         makeDecorations();
         scheduleUpdate();
         updateCursorStatus();
@@ -384,7 +415,7 @@ export async function activate(context: vscode.ExtensionContext) {
 }
 
 export function deactivate() {
-  if (decorations) Object.values(decorations).forEach(d => d.dispose());
+  Object.values(decorations).forEach(d => d?.dispose());
   enabledFiles.clear();
   statusItem?.dispose();
   statusItem = null;

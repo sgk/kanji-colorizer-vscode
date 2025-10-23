@@ -61,6 +61,14 @@
         }
       },
       {
+        "command": "kanjiColorize.button.g0",
+        "title": "小・中学校の漢字: 追加カテゴリ g0",
+        "icon": {
+          "dark": "media/button_g0.svg",
+          "light": "media/button_g0.svg"
+        }
+      },
+      {
         "command": "kanjiColorize.button.g1",
         "title": "小・中学校の漢字: 1年生",
         "icon": {
@@ -117,6 +125,22 @@
         }
       },
       {
+        "command": "kanjiColorize.button.g8",
+        "title": "小・中学校の漢字: 追加カテゴリ g8",
+        "icon": {
+          "dark": "media/button_g8.svg",
+          "light": "media/button_g8.svg"
+        }
+      },
+      {
+        "command": "kanjiColorize.button.g9",
+        "title": "小・中学校の漢字: 追加カテゴリ g9",
+        "icon": {
+          "dark": "media/button_g9.svg",
+          "light": "media/button_g9.svg"
+        }
+      },
+      {
         "command": "kanjiColorize.button.other",
         "title": "小・中学校の漢字: 常用漢字外",
         "icon": {
@@ -141,6 +165,11 @@
           "command": "kanjiColorize.button.unknown",
           "group": "navigation@99",
           "when": "editorIsOpen && kanjiColorize.buttonLabel == 'unknown'"
+        },
+        {
+          "command": "kanjiColorize.button.g0",
+          "group": "navigation@99",
+          "when": "editorIsOpen && kanjiColorize.buttonLabel == 'g0'"
         },
         {
           "command": "kanjiColorize.button.g1",
@@ -176,6 +205,16 @@
           "command": "kanjiColorize.button.g7",
           "group": "navigation@99",
           "when": "editorIsOpen && kanjiColorize.buttonLabel == 'g7'"
+        },
+        {
+          "command": "kanjiColorize.button.g8",
+          "group": "navigation@99",
+          "when": "editorIsOpen && kanjiColorize.buttonLabel == 'g8'"
+        },
+        {
+          "command": "kanjiColorize.button.g9",
+          "group": "navigation@99",
+          "when": "editorIsOpen && kanjiColorize.buttonLabel == 'g9'"
         },
         {
           "command": "kanjiColorize.button.other",

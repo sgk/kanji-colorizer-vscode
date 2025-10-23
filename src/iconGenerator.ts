@@ -2,7 +2,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
-import { allGradeKeys, GradeDefinitions } from './gradeConfig';
+import { allGradeKeys, GradeDefinitions, GradeKey } from './gradeConfig';
 
 function resolveTextColor(textColorSetting: unknown): string {
   if (typeof textColorSetting !== 'string') {
@@ -25,17 +25,33 @@ function createSvg({ fill, textColor, text }: { fill: string; textColor: string;
   ].join('\n');
 }
 
+function createEmptySvg(): string {
+  return [
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">',
+    '  <rect width="24" height="24" rx="4.8" fill="none"/>',
+    '</svg>',
+    ''
+  ].join('\n');
+}
+
 export async function generateGradeIcons(
   context: vscode.ExtensionContext,
   definitions: GradeDefinitions
 ): Promise<void> {
   const cfg = vscode.workspace.getConfiguration('kanjiColorize');
   const textColor = resolveTextColor(cfg.get('textColor'));
-  const tasks = allGradeKeys.map(async (grade) => {
+  const tasks = allGradeKeys.map(async (grade: GradeKey) => {
     const def = definitions[grade];
-    const fill = typeof def?.color === 'string' ? def.color : '#cccccc';
-    const text = typeof def?.iconText === 'string' ? def.iconText : grade;
-    const svg = createSvg({ fill, textColor, text });
+    let svg: string;
+    if (!def) {
+      svg = createEmptySvg();
+    } else {
+      const configuredColor = cfg.get(`colors.${grade}`, def.color);
+      const fill = typeof configuredColor === 'string' && configuredColor.trim().length > 0
+        ? configuredColor
+        : def.color;
+      svg = createSvg({ fill, textColor, text: def.iconText });
+    }
     const target = path.join(context.extensionPath, 'media', `button_${grade}.svg`);
     await fs.writeFile(target, svg, 'utf8');
   });
