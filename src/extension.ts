@@ -89,7 +89,7 @@ function makeDecorations() {
     g4: make('colors.g4', '#99ffce'),
     g5: make('colors.g5', '#a399ff'),
     g6: make('colors.g6', '#d699ff'),
-    g7: make('colors.g7', '#ff99cc'),
+    g7: make('colors.g7', '#ff66ff'),
     other: make('colors.other', '#ef4444') // 範囲外：赤
   };
 }

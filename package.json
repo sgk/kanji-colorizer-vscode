@@ -227,7 +227,7 @@
         },
         "kanjiColorize.colors.g7": {
           "type": "string",
-          "default": "#ff99cc",
+          "default": "#ff66ff",
           "description": "中学生の色"
         },
         "kanjiColorize.colors.other": {
