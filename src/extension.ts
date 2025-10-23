@@ -2,10 +2,15 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 
-const baseGradeKeys = ['g1', 'g2', 'g3', 'g4', 'g5', 'g6', 'g7'] as const;
-type BaseGradeKey = typeof baseGradeKeys[number];
-type GradeKey = BaseGradeKey | 'other';
-const allGradeKeys = [...baseGradeKeys, 'other'] as const;
+import {
+  allGradeKeys,
+  baseGradeKeys,
+  BaseGradeKey,
+  defaultGradeColors,
+  gradeLabels,
+  GradeKey
+} from './gradeConfig';
+import { generateGradeIcons } from './iconGenerator';
 
 let decorations: Record<GradeKey, vscode.TextEditorDecorationType> | null = null;
 let gradeRegex: Partial<Record<GradeKey, RegExp>> = {};
@@ -28,17 +33,6 @@ const buttonCommandIds = {
 } as const;
 
 type ButtonLabel = keyof typeof buttonCommandIds;
-
-const gradeLabel: Record<GradeKey, string> = {
-  g1: '1年生の漢字',
-  g2: '2年生の漢字',
-  g3: '3年生の漢字',
-  g4: '4年生の漢字',
-  g5: '5年生の漢字',
-  g6: '6年生の漢字',
-  g7: '中学生の漢字',
-  other: '常用漢字外の漢字'
-};
 
 const buttonLabelContextKey = 'kanjiColorize.buttonLabel';
 const extensionActiveContextKey = 'kanjiColorize.isActive';
@@ -83,14 +77,14 @@ function makeDecorations() {
     return vscode.window.createTextEditorDecorationType(options);
   };
   decorations = {
-    g1: make('colors.g1', '#fffa99'),
-    g2: make('colors.g2', '#ffd199'),
-    g3: make('colors.g3', '#f99'),
-    g4: make('colors.g4', '#99ffce'),
-    g5: make('colors.g5', '#a399ff'),
-    g6: make('colors.g6', '#d699ff'),
-    g7: make('colors.g7', '#ff66ff'),
-    other: make('colors.other', '#ef4444') // 範囲外：赤
+    g1: make('colors.g1', defaultGradeColors.g1),
+    g2: make('colors.g2', defaultGradeColors.g2),
+    g3: make('colors.g3', defaultGradeColors.g3),
+    g4: make('colors.g4', defaultGradeColors.g4),
+    g5: make('colors.g5', defaultGradeColors.g5),
+    g6: make('colors.g6', defaultGradeColors.g6),
+    g7: make('colors.g7', defaultGradeColors.g7),
+    other: make('colors.other', defaultGradeColors.other) // 範囲外：赤
   };
 }
 
@@ -252,8 +246,8 @@ function updateCursorStatus(editor = vscode.window.activeTextEditor) {
   }
 
   if (gradeKey) {
-    statusItem.text = `$(book) ${gradeLabel[gradeKey]}`;
-    statusItem.tooltip = `${ch} は ${gradeLabel[gradeKey]}`;
+    statusItem.text = `$(book) ${gradeLabels[gradeKey]}`;
+    statusItem.tooltip = `${ch} は ${gradeLabels[gradeKey]}`;
     statusItem.show();
     setButtonLabel(gradeKey);
   } else {
@@ -262,7 +256,7 @@ function updateCursorStatus(editor = vscode.window.activeTextEditor) {
   }
 }
 
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
   makeDecorations();
   rebuildRegex(context);
   loadGradeVisibility(context);
@@ -271,6 +265,12 @@ export function activate(context: vscode.ExtensionContext) {
   statusItem.name = 'Kanji Grade';
   context.subscriptions.push(statusItem);
   setButtonLabel('off');
+
+  try {
+    await generateGradeIcons(context);
+  } catch (err) {
+    console.error('KanjiColorize: アイコン生成に失敗しました', err);
+  }
 
   const toggle = () => {
     const editor = vscode.window.activeTextEditor;
@@ -296,7 +296,7 @@ export function activate(context: vscode.ExtensionContext) {
     type GradeQuickPickItem = vscode.QuickPickItem & { grade: GradeKey };
     const items: GradeQuickPickItem[] = allGradeKeys.map(
       (grade): GradeQuickPickItem => ({
-        label: gradeLabel[grade],
+        label: gradeLabels[grade],
         picked: isGradeEnabled(grade),
         grade
       })
@@ -353,6 +353,7 @@ export function activate(context: vscode.ExtensionContext) {
         makeDecorations();
         scheduleUpdate();
         updateCursorStatus();
+        void generateGradeIcons(context);
       }
     })
   );
