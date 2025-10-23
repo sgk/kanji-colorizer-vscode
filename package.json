@@ -14,7 +14,7 @@
     "url": "https://github.com/sgk/kanji-colorizer-vscode/issues"
   },
   "homepage": "https://github.com/sgk/kanji-colorizer-vscode#readme",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "publisher": "144Lab",
   "icon": "media/icon.png",
   "engines": {
@@ -26,7 +26,8 @@
   ],
   "activationEvents": [
     "onStartupFinished",
-    "onCommand:kanjiColorize.toggleFile"
+    "onCommand:kanjiColorize.toggleFile",
+    "onCommand:kanjiColorize.configureGrades"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -34,6 +35,14 @@
       {
         "command": "kanjiColorize.toggleFile",
         "title": "小学校の漢字: このファイルでオン/オフ"
+      },
+      {
+        "command": "kanjiColorize.configureGrades",
+        "title": "小学校の漢字: 色付けする学年を選択",
+        "icon": {
+          "dark": "media/button_settings.svg",
+          "light": "media/button_settings.svg"
+        }
       },
       {
         "command": "kanjiColorize.button.off",
@@ -110,6 +119,11 @@
     ],
     "menus": {
       "editor/title": [
+        {
+          "command": "kanjiColorize.configureGrades",
+          "group": "navigation@05",
+          "when": "editorIsOpen && kanjiColorize.isActive"
+        },
         {
           "command": "kanjiColorize.button.off",
           "group": "navigation@99",

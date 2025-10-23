@@ -36,7 +36,18 @@ const gradeLabel: Record<GradeKey, string> = {
 };
 
 const buttonLabelContextKey = 'kanjiColorize.buttonLabel';
+const extensionActiveContextKey = 'kanjiColorize.isActive';
 let currentButtonLabel: ButtonLabel | null = null;
+const gradeVisibilityStateKey = 'kanjiColorize.enabledGrades';
+let gradeVisibility: Record<GradeKey, boolean> = {
+  g1: true,
+  g2: true,
+  g3: true,
+  g4: true,
+  g5: true,
+  g6: true,
+  other: true
+};
 
 // デフォルト OFF。オンにしたファイル URI を保持。
 const enabledFiles = new Set<string>();
@@ -113,6 +124,27 @@ function setButtonLabel(label: ButtonLabel) {
   void vscode.commands.executeCommand('setContext', buttonLabelContextKey, label);
 }
 
+function updateActiveFileContext(editor = vscode.window.activeTextEditor) {
+  const enabled = editor ? isFileOn(editor) : false;
+  void vscode.commands.executeCommand('setContext', extensionActiveContextKey, enabled);
+}
+
+function loadGradeVisibility(context: vscode.ExtensionContext) {
+  const stored = context.workspaceState.get<Record<GradeKey, boolean>>(gradeVisibilityStateKey);
+  if (!stored) {
+    return;
+  }
+  gradeVisibility = { ...gradeVisibility, ...stored };
+}
+
+function saveGradeVisibility(context: vscode.ExtensionContext) {
+  return context.workspaceState.update(gradeVisibilityStateKey, gradeVisibility);
+}
+
+function isGradeEnabled(key: GradeKey): boolean {
+  return gradeVisibility[key] !== false;
+}
+
 function isFileOn(editor = vscode.window.activeTextEditor): boolean {
   if (!editor) return false;
   const key = editor.document.uri.toString();
@@ -174,7 +206,9 @@ function updateActiveEditor(editor: vscode.TextEditor | undefined) {
 
   (Object.keys(perGradeRanges) as GradeKey[]).forEach((k) => {
     const deco = decorations![k];
-    if (deco) editor.setDecorations(deco, perGradeRanges[k]);
+    if (deco) {
+      editor.setDecorations(deco, isGradeEnabled(k) ? perGradeRanges[k] : []);
+    }
   });
   updateCursorStatus(editor);
 }
@@ -225,6 +259,8 @@ function updateCursorStatus(editor = vscode.window.activeTextEditor) {
 export function activate(context: vscode.ExtensionContext) {
   makeDecorations();
   rebuildRegex(context);
+  loadGradeVisibility(context);
+  updateActiveFileContext();
   statusItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
   statusItem.name = 'Kanji Grade';
   context.subscriptions.push(statusItem);
@@ -247,13 +283,43 @@ export function activate(context: vscode.ExtensionContext) {
       updateCursorStatus(editor);
       vscode.window.setStatusBarMessage('Kanji Colorize: ON (this file)', 1200);
     }
+    updateActiveFileContext(editor);
+  };
+
+  const configureGrades = async () => {
+    type GradeQuickPickItem = vscode.QuickPickItem & { grade: GradeKey };
+    const items: GradeQuickPickItem[] = (Object.entries(gradeLabel) as [GradeKey, string][]).map(
+      ([grade, label]): GradeQuickPickItem => ({
+        label,
+        picked: isGradeEnabled(grade),
+        grade
+      })
+    );
+    const picked = await vscode.window.showQuickPick<GradeQuickPickItem>(items, {
+      canPickMany: true,
+      placeHolder: '色付けを有効にする学年を選択してください'
+    });
+    if (!picked) {
+      return;
+    }
+    const selected = new Set(picked.map(item => item.grade));
+    gradeVisibility = { ...gradeVisibility };
+    (Object.keys(gradeVisibility) as GradeKey[]).forEach(grade => {
+      gradeVisibility[grade] = selected.has(grade);
+    });
+    await saveGradeVisibility(context);
+    scheduleUpdate();
+    updateCursorStatus();
+    vscode.window.setStatusBarMessage('Kanji Colorize: 色付け対象を更新しました', 1600);
   };
 
   context.subscriptions.push(
     vscode.commands.registerCommand('kanjiColorize.toggleFile', toggle),
+    vscode.commands.registerCommand('kanjiColorize.configureGrades', configureGrades),
     vscode.window.onDidChangeActiveTextEditor(editor => {
       scheduleUpdate(editor ?? undefined);
       updateCursorStatus(editor ?? undefined);
+      updateActiveFileContext(editor ?? undefined);
     }),
     vscode.workspace.onDidChangeTextDocument(e => {
       const editor = vscode.window.activeTextEditor;
@@ -269,6 +335,7 @@ export function activate(context: vscode.ExtensionContext) {
         statusItem.hide();
         setButtonLabel('off');
       }
+      updateActiveFileContext();
     }),
     vscode.window.onDidChangeTextEditorSelection(e => {
       if (e.textEditor !== vscode.window.activeTextEditor) return;
@@ -295,4 +362,5 @@ export function deactivate() {
   statusItem?.dispose();
   statusItem = null;
   setButtonLabel('off');
+  void vscode.commands.executeCommand('setContext', extensionActiveContextKey, false);
 }

@@ -1,5 +1,4 @@
+*.vsix
 /.vscode
-/kanji-grade-colorizer-0.2.0.vsix
 /node_modules
 /out
-/package-lock.json
