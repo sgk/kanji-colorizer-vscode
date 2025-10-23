@@ -12,8 +12,6 @@ Kanji Grade Colorizer は、VS Code 上で小学校の学年別に漢字へ背�
 2. 「Kanji Grade Colorizer」で検索し、`インストール` をクリックします。
 3. インストール後、VS Code を再読み込みすると利用できる状態になります。
 
-> 開発版 VSIX ファイルから導入する場合は、VS Code の拡張機能ビュー右上の「…」メニューから `Install from VSIX...` を選び、同梱の `kanji-grade-colorizer-<version>.vsix` を指定してください。
-
 ## 使い方
 1. 対象となるテキストファイルを開きます。
 2. エディタ右上に表示される「漢」アイコンをクリックします。
@@ -24,7 +22,12 @@ Kanji Grade Colorizer は、VS Code 上で小学校の学年別に漢字へ背�
 
 | 設定キー | 説明 | 既定値 |
 | --- | --- | --- |
-| `kanjiColorize.colors.g1`〜`g6` | 学年ごとの背景色 | 1年生: `#fffa99`、2年生: `#ffd199`、3年生: `#ff9999`、4年生: `#99ffce`、5年生: `#a399ff`、6年生: `#d699ff` |
+| `kanjiColorize.colors.g1` | 学年ごとの背景色 | 1年生: `#fffa99` |
+| `kanjiColorize.colors.g2` | 学年ごとの背景色 | 2年生: `#ffd199` |
+| `kanjiColorize.colors.g3` | 学年ごとの背景色 | 3年生: `#ff9999` |
+| `kanjiColorize.colors.g4` | 学年ごとの背景色 | 4年生: `#99ffce` |
+| `kanjiColorize.colors.g5` | 学年ごとの背景色 | 5年生: `#a399ff` |
+| `kanjiColorize.colors.g6` | 学年ごとの背景色 | 6年生: `#d699ff` |
 | `kanjiColorize.colors.other` | 教育漢字外の背景色 | `#ef4444` |
 | `kanjiColorize.textColor` | 背景色を適用した文字の色（空欄にするとテーマ準拠） | `#000000` |
 | `kanjiColorize.opacity` | 背景色の不透明度 (0〜1) | `0.6` |
