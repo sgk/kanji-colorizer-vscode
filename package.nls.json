@@ -1,0 +1,22 @@
+{
+  "displayName": "Kanji Grade Colorizer",
+  "description": "Highlight kanji based on Japanese school grade (toggle per file).",
+  "command.toggleFile.title": "Kanji Grades: Toggle in this file",
+  "command.configureGrades.title": "Kanji Grades: Select grades to highlight",
+  "command.off.title": "Kanji Grades: Off",
+  "command.unknown.title": "Kanji Grades: Non-kanji",
+  "command.g0.title": "Kanji Grades: Additional category g0",
+  "command.g1.title": "Kanji Grades: Grade 1",
+  "command.g2.title": "Kanji Grades: Grade 2",
+  "command.g3.title": "Kanji Grades: Grade 3",
+  "command.g4.title": "Kanji Grades: Grade 4",
+  "command.g5.title": "Kanji Grades: Grade 5",
+  "command.g6.title": "Kanji Grades: Grade 6",
+  "command.g7.title": "Kanji Grades: Junior high",
+  "command.g8.title": "Kanji Grades: Additional category g8",
+  "command.g9.title": "Kanji Grades: Additional category g9",
+  "command.other.title": "Kanji Grades: Outside Joyo kanji",
+  "configuration.title": "Kanji Grade Colorizer",
+  "config.textColor.description": "Foreground color for characters with background applied (leave empty to use theme text color)",
+  "config.opacity.description": "Opacity of the background color"
+}

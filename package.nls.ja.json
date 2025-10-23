@@ -1,0 +1,22 @@
+{
+  "displayName": "漢字学年色分け",
+  "description": "小中学校で学ぶ漢字を学年ごとに色分け表示（ファイル単位トグル）。",
+  "command.toggleFile.title": "漢字学年色分け: このファイルでオン/オフ",
+  "command.configureGrades.title": "漢字学年色分け: 色付けする学年を選択",
+  "command.off.title": "漢字学年色分け: オフ",
+  "command.unknown.title": "漢字以外",
+  "command.g0.title": "漢字追加カテゴリg0",
+  "command.g1.title": "1年生",
+  "command.g2.title": "2年生",
+  "command.g3.title": "3年生",
+  "command.g4.title": "4年生",
+  "command.g5.title": "5年生",
+  "command.g6.title": "6年生",
+  "command.g7.title": "中学生",
+  "command.g8.title": "漢字追加カテゴリg8",
+  "command.g9.title": "漢字追加カテゴリg9",
+  "command.other.title": ": 常用漢字外",
+  "configuration.title": "漢字学年色分け",
+  "config.textColor.description": "背景色を適用した文字の色（空欄にするとテーマの文字色を使用）",
+  "config.opacity.description": "背景色の不透明度"
+}
