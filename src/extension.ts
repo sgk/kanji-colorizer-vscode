@@ -1,14 +1,12 @@
 import * as vscode from 'vscode';
-import * as fs from 'fs';
-import * as path from 'path';
 
 import {
   allGradeKeys,
   baseGradeKeys,
-  BaseGradeKey,
-  defaultGradeColors,
-  gradeLabels,
-  GradeKey
+  GradeDefinitions,
+  GradeKey,
+  getFallbackGradeDefinitions,
+  loadGradeDefinitions
 } from './gradeConfig';
 import { generateGradeIcons } from './iconGenerator';
 
@@ -18,6 +16,7 @@ let knownKanjiSet: Set<string> = new Set();
 let debounceTimer: NodeJS.Timeout | null = null;
 let gradeByKanji: Map<string, GradeKey> = new Map();
 let statusItem: vscode.StatusBarItem | null = null;
+let gradeDefinitions: GradeDefinitions = getFallbackGradeDefinitions();
 
 const buttonCommandIds = {
   off: 'kanjiColorize.button.off',
@@ -52,12 +51,6 @@ let gradeVisibility: Record<GradeKey, boolean> = {
 // デフォルト OFF。オンにしたファイル URI を保持。
 const enabledFiles = new Set<string>();
 
-function loadKanjiSets(context: vscode.ExtensionContext): Record<BaseGradeKey, string> {
-  const p = path.join(context.extensionPath, 'data', 'kyouiku_kanji.json');
-  const raw = fs.readFileSync(p, 'utf8');
-  return JSON.parse(raw);
-}
-
 function makeDecorations() {
   const cfg = vscode.workspace.getConfiguration('kanjiColorize');
   const opacity = Math.min(Math.max(Number(cfg.get('opacity', 0.6)), 0), 1);
@@ -65,8 +58,9 @@ function makeDecorations() {
   const textColor = typeof textColorSetting === 'string' && textColorSetting.trim().length > 0
     ? textColorSetting.trim()
     : null;
-  const make = (colorSettingKey: string, fallback: string) => {
-    const color = String(cfg.get(colorSettingKey) ?? fallback);
+  const make = (grade: GradeKey) => {
+    const fallback = gradeDefinitions[grade]?.color ?? '#cccccc';
+    const color = String(cfg.get(`colors.${grade}`, fallback));
     const options: vscode.DecorationRenderOptions = {
       backgroundColor: hexToRgba(color, opacity),
       borderRadius: '3px'
@@ -77,14 +71,14 @@ function makeDecorations() {
     return vscode.window.createTextEditorDecorationType(options);
   };
   decorations = {
-    g1: make('colors.g1', defaultGradeColors.g1),
-    g2: make('colors.g2', defaultGradeColors.g2),
-    g3: make('colors.g3', defaultGradeColors.g3),
-    g4: make('colors.g4', defaultGradeColors.g4),
-    g5: make('colors.g5', defaultGradeColors.g5),
-    g6: make('colors.g6', defaultGradeColors.g6),
-    g7: make('colors.g7', defaultGradeColors.g7),
-    other: make('colors.other', defaultGradeColors.other) // 範囲外：赤
+    g1: make('g1'),
+    g2: make('g2'),
+    g3: make('g3'),
+    g4: make('g4'),
+    g5: make('g5'),
+    g6: make('g6'),
+    g7: make('g7'),
+    other: make('other') // 範囲外：赤
   };
 }
 
@@ -101,16 +95,15 @@ function buildRegexFromSet(chars: string): RegExp {
   return new RegExp(`[${cls}]`, 'g');
 }
 
-function rebuildRegex(context: vscode.ExtensionContext) {
-  const sets = loadKanjiSets(context);
+function rebuildRegex() {
   const rx: Partial<Record<GradeKey, RegExp>> = {};
   knownKanjiSet = new Set<string>();
   gradeByKanji = new Map();
   baseGradeKeys.forEach(k => {
-    const s = (sets as any)[k];
-    if (typeof s === 'string' && s.length) {
-      rx[k] = buildRegexFromSet(s);
-      for (const ch of s) {
+    const chars = gradeDefinitions[k]?.characters ?? '';
+    if (typeof chars === 'string' && chars.length) {
+      rx[k] = buildRegexFromSet(chars);
+      for (const ch of chars) {
         knownKanjiSet.add(ch);
         gradeByKanji.set(ch, k);
       }
@@ -246,8 +239,9 @@ function updateCursorStatus(editor = vscode.window.activeTextEditor) {
   }
 
   if (gradeKey) {
-    statusItem.text = `$(book) ${gradeLabels[gradeKey]}`;
-    statusItem.tooltip = `${ch} は ${gradeLabels[gradeKey]}`;
+    const label = gradeDefinitions[gradeKey]?.label ?? gradeKey;
+    statusItem.text = `$(book) ${label}`;
+    statusItem.tooltip = `${ch} は ${label}`;
     statusItem.show();
     setButtonLabel(gradeKey);
   } else {
@@ -257,8 +251,9 @@ function updateCursorStatus(editor = vscode.window.activeTextEditor) {
 }
 
 export async function activate(context: vscode.ExtensionContext) {
+  gradeDefinitions = loadGradeDefinitions(context);
   makeDecorations();
-  rebuildRegex(context);
+  rebuildRegex();
   loadGradeVisibility(context);
   updateActiveFileContext();
   statusItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
@@ -267,7 +262,7 @@ export async function activate(context: vscode.ExtensionContext) {
   setButtonLabel('off');
 
   try {
-    await generateGradeIcons(context);
+    await generateGradeIcons(context, gradeDefinitions);
   } catch (err) {
     console.error('KanjiColorize: アイコン生成に失敗しました', err);
   }
@@ -296,7 +291,7 @@ export async function activate(context: vscode.ExtensionContext) {
     type GradeQuickPickItem = vscode.QuickPickItem & { grade: GradeKey };
     const items: GradeQuickPickItem[] = allGradeKeys.map(
       (grade): GradeQuickPickItem => ({
-        label: gradeLabels[grade],
+        label: gradeDefinitions[grade]?.label ?? grade,
         picked: isGradeEnabled(grade),
         grade
       })
@@ -349,11 +344,13 @@ export async function activate(context: vscode.ExtensionContext) {
     }),
     vscode.workspace.onDidChangeConfiguration(e => {
       if (e.affectsConfiguration('kanjiColorize')) {
+        gradeDefinitions = loadGradeDefinitions(context);
+        rebuildRegex();
         if (decorations) Object.values(decorations).forEach(d => d.dispose());
         makeDecorations();
         scheduleUpdate();
         updateCursorStatus();
-        void generateGradeIcons(context);
+        void generateGradeIcons(context, gradeDefinitions);
       }
     })
   );

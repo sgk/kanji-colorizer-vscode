@@ -2,7 +2,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
-import { allGradeKeys, defaultGradeColors, gradeIconTexts } from './gradeConfig';
+import { allGradeKeys, GradeDefinitions } from './gradeConfig';
 
 function resolveTextColor(textColorSetting: unknown): string {
   if (typeof textColorSetting !== 'string') {
@@ -13,8 +13,9 @@ function resolveTextColor(textColorSetting: unknown): string {
 }
 
 function createSvg({ fill, textColor, text }: { fill: string; textColor: string; text: string; }): string {
-  const fontSize = text === '中' || text === '外' ? 24 : 26.6667;
-  const y = text === '中' || text === '外' ? 20.625 : 21.7;
+  const isWide = text.length !== 1 || !/^[0-9]$/.test(text);
+  const fontSize = isWide ? 24 : 26.6667;
+  const y = isWide ? 20.625 : 21.7;
   return [
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">',
     `  <rect width="24" height="24" rx="4.8" fill="${fill}"/>`,
@@ -24,12 +25,17 @@ function createSvg({ fill, textColor, text }: { fill: string; textColor: string;
   ].join('\n');
 }
 
-export async function generateGradeIcons(context: vscode.ExtensionContext): Promise<void> {
+export async function generateGradeIcons(
+  context: vscode.ExtensionContext,
+  definitions: GradeDefinitions
+): Promise<void> {
   const cfg = vscode.workspace.getConfiguration('kanjiColorize');
   const textColor = resolveTextColor(cfg.get('textColor'));
   const tasks = allGradeKeys.map(async (grade) => {
-    const fill = String(cfg.get(`colors.${grade}`, defaultGradeColors[grade]));
-    const svg = createSvg({ fill, textColor, text: gradeIconTexts[grade] });
+    const def = definitions[grade];
+    const fill = typeof def?.color === 'string' ? def.color : '#cccccc';
+    const text = typeof def?.iconText === 'string' ? def.iconText : grade;
+    const svg = createSvg({ fill, textColor, text });
     const target = path.join(context.extensionPath, 'media', `button_${grade}.svg`);
     await fs.writeFile(target, svg, 'utf8');
   });

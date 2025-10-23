@@ -36,16 +36,10 @@ Kanji Grade Colorizer は、VS Code 上で小・中学校の学年別に漢字�
 
 | 設定キー | 説明 | 既定値 |
 | --- | --- | --- |
-| `kanjiColorize.colors.g1` | 学年ごとの背景色 | 1年生: `#fffa99` |
-| `kanjiColorize.colors.g2` | 学年ごとの背景色 | 2年生: `#ffd199` |
-| `kanjiColorize.colors.g3` | 学年ごとの背景色 | 3年生: `#ff9999` |
-| `kanjiColorize.colors.g4` | 学年ごとの背景色 | 4年生: `#99ffce` |
-| `kanjiColorize.colors.g5` | 学年ごとの背景色 | 5年生: `#a399ff` |
-| `kanjiColorize.colors.g6` | 学年ごとの背景色 | 6年生: `#d699ff` |
-| `kanjiColorize.colors.g7` | 学年ごとの背景色 | 中学生: `#ff66ff` |
-| `kanjiColorize.colors.other` | 常用漢字外の背景色 | `#ef4444` |
 | `kanjiColorize.textColor` | 背景色を適用した文字の色（空欄にするとテーマ準拠） | `#000000` |
 | `kanjiColorize.opacity` | 背景色の不透明度 (0〜1) | `0.6` |
+
+学年ごとの背景色や表示用ラベルは `data/kanji.json` にまとめて定義されています。必要に応じてこのファイルを編集すると、色やアイコン文字、分類に含める漢字を一括で変更できます。
 
 ## サポート
 不具合報告や要望がある場合は、[GitHub リポジトリ](https://github.com/sgk/kanji-colorizer-vscode/issues) で Issue を作成してください。
