@@ -2,7 +2,10 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 
-type GradeKey = 'g1' | 'g2' | 'g3' | 'g4' | 'g5' | 'g6' | 'other';
+const baseGradeKeys = ['g1', 'g2', 'g3', 'g4', 'g5', 'g6', 'g7'] as const;
+type BaseGradeKey = typeof baseGradeKeys[number];
+type GradeKey = BaseGradeKey | 'other';
+const allGradeKeys = [...baseGradeKeys, 'other'] as const;
 
 let decorations: Record<GradeKey, vscode.TextEditorDecorationType> | null = null;
 let gradeRegex: Partial<Record<GradeKey, RegExp>> = {};
@@ -20,6 +23,7 @@ const buttonCommandIds = {
   g4: 'kanjiColorize.button.g4',
   g5: 'kanjiColorize.button.g5',
   g6: 'kanjiColorize.button.g6',
+  g7: 'kanjiColorize.button.g7',
   other: 'kanjiColorize.button.other'
 } as const;
 
@@ -32,7 +36,8 @@ const gradeLabel: Record<GradeKey, string> = {
   g4: '4年生の漢字',
   g5: '5年生の漢字',
   g6: '6年生の漢字',
-  other: '教育漢字外の漢字'
+  g7: '中学生の漢字',
+  other: '常用漢字外の漢字'
 };
 
 const buttonLabelContextKey = 'kanjiColorize.buttonLabel';
@@ -46,13 +51,14 @@ let gradeVisibility: Record<GradeKey, boolean> = {
   g4: true,
   g5: true,
   g6: true,
+  g7: true,
   other: true
 };
 
 // デフォルト OFF。オンにしたファイル URI を保持。
 const enabledFiles = new Set<string>();
 
-function loadKanjiSets(context: vscode.ExtensionContext): Record<Exclude<GradeKey, 'other'>, string> {
+function loadKanjiSets(context: vscode.ExtensionContext): Record<BaseGradeKey, string> {
   const p = path.join(context.extensionPath, 'data', 'kyouiku_kanji.json');
   const raw = fs.readFileSync(p, 'utf8');
   return JSON.parse(raw);
@@ -83,6 +89,7 @@ function makeDecorations() {
     g4: make('colors.g4', '#99ffce'),
     g5: make('colors.g5', '#a399ff'),
     g6: make('colors.g6', '#d699ff'),
+    g7: make('colors.g7', '#ff99cc'),
     other: make('colors.other', '#ef4444') // 範囲外：赤
   };
 }
@@ -105,7 +112,7 @@ function rebuildRegex(context: vscode.ExtensionContext) {
   const rx: Partial<Record<GradeKey, RegExp>> = {};
   knownKanjiSet = new Set<string>();
   gradeByKanji = new Map();
-  (['g1','g2','g3','g4','g5','g6'] as GradeKey[]).forEach(k => {
+  baseGradeKeys.forEach(k => {
     const s = (sets as any)[k];
     if (typeof s === 'string' && s.length) {
       rx[k] = buildRegexFromSet(s);
@@ -170,15 +177,14 @@ function updateActiveEditor(editor: vscode.TextEditor | undefined) {
     return;
   }
 
-  const perGradeRanges: Record<GradeKey, vscode.Range[]> = {
-    g1: [], g2: [], g3: [], g4: [], g5: [], g6: [], other: []
-  };
+  const perGradeRanges = {} as Record<GradeKey, vscode.Range[]>;
+  allGradeKeys.forEach(k => { perGradeRanges[k] = []; });
 
   for (let i = 0; i < editor.document.lineCount; i++) {
     const line = editor.document.lineAt(i).text;
 
     // まず各学年を正規表現で拾う
-    (Object.keys(gradeRegex) as GradeKey[]).forEach((k) => {
+    baseGradeKeys.forEach((k) => {
       const rx = gradeRegex[k];
       if (!rx) return;
       rx.lastIndex = 0;
@@ -192,7 +198,7 @@ function updateActiveEditor(editor: vscode.TextEditor | undefined) {
       }
     });
 
-    // 範囲外（教育漢字以外）= CJK漢字で、knownKanjiSet に含まれないもの
+    // 範囲外（常用漢字以外）= CJK漢字で、knownKanjiSet に含まれないもの
     for (let col = 0; col < line.length; col++) {
       const ch = line[col];
       if (isHan(ch) && !knownKanjiSet.has(ch)) {
@@ -204,7 +210,7 @@ function updateActiveEditor(editor: vscode.TextEditor | undefined) {
     }
   }
 
-  (Object.keys(perGradeRanges) as GradeKey[]).forEach((k) => {
+  allGradeKeys.forEach((k) => {
     const deco = decorations![k];
     if (deco) {
       editor.setDecorations(deco, isGradeEnabled(k) ? perGradeRanges[k] : []);
@@ -288,9 +294,9 @@ export function activate(context: vscode.ExtensionContext) {
 
   const configureGrades = async () => {
     type GradeQuickPickItem = vscode.QuickPickItem & { grade: GradeKey };
-    const items: GradeQuickPickItem[] = (Object.entries(gradeLabel) as [GradeKey, string][]).map(
-      ([grade, label]): GradeQuickPickItem => ({
-        label,
+    const items: GradeQuickPickItem[] = allGradeKeys.map(
+      (grade): GradeQuickPickItem => ({
+        label: gradeLabel[grade],
         picked: isGradeEnabled(grade),
         grade
       })
@@ -304,7 +310,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
     const selected = new Set(picked.map(item => item.grade));
     gradeVisibility = { ...gradeVisibility };
-    (Object.keys(gradeVisibility) as GradeKey[]).forEach(grade => {
+    allGradeKeys.forEach(grade => {
       gradeVisibility[grade] = selected.has(grade);
     });
     await saveGradeVisibility(context);

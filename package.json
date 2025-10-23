@@ -1,7 +1,7 @@
 {
   "name": "kanji-grade-colorizer",
   "displayName": "Kanji Grade Colorizer",
-  "description": "小学校の学年ごとに漢字を色分け表示（ファイル単位トグル）。",
+  "description": "小・中学校で学ぶ漢字を学年ごとに色分け表示（ファイル単位トグル）。",
   "author": {
     "name": "144Lab"
   },
@@ -34,11 +34,11 @@
     "commands": [
       {
         "command": "kanjiColorize.toggleFile",
-        "title": "小学校の漢字: このファイルでオン/オフ"
+        "title": "小・中学校の漢字: このファイルでオン/オフ"
       },
       {
         "command": "kanjiColorize.configureGrades",
-        "title": "小学校の漢字: 色付けする学年を選択",
+        "title": "小・中学校の漢字: 色付けする学年を選択",
         "icon": {
           "dark": "media/button_settings.svg",
           "light": "media/button_settings.svg"
@@ -46,7 +46,7 @@
       },
       {
         "command": "kanjiColorize.button.off",
-        "title": "小学校の漢字: オフ",
+        "title": "小・中学校の漢字: オフ",
         "icon": {
           "dark": "media/button_off.svg",
           "light": "media/button_off.svg"
@@ -54,7 +54,7 @@
       },
       {
         "command": "kanjiColorize.button.unknown",
-        "title": "小学校の漢字: 漢字以外",
+        "title": "小・中学校の漢字: 漢字以外",
         "icon": {
           "dark": "media/button_unknown.svg",
           "light": "media/button_unknown.svg"
@@ -62,7 +62,7 @@
       },
       {
         "command": "kanjiColorize.button.g1",
-        "title": "小学校の漢字: 1年生",
+        "title": "小・中学校の漢字: 1年生",
         "icon": {
           "dark": "media/button_g1.svg",
           "light": "media/button_g1.svg"
@@ -70,7 +70,7 @@
       },
       {
         "command": "kanjiColorize.button.g2",
-        "title": "小学校の漢字: 2年生",
+        "title": "小・中学校の漢字: 2年生",
         "icon": {
           "dark": "media/button_g2.svg",
           "light": "media/button_g2.svg"
@@ -78,7 +78,7 @@
       },
       {
         "command": "kanjiColorize.button.g3",
-        "title": "小学校の漢字: 3年生",
+        "title": "小・中学校の漢字: 3年生",
         "icon": {
           "dark": "media/button_g3.svg",
           "light": "media/button_g3.svg"
@@ -86,7 +86,7 @@
       },
       {
         "command": "kanjiColorize.button.g4",
-        "title": "小学校の漢字: 4年生",
+        "title": "小・中学校の漢字: 4年生",
         "icon": {
           "dark": "media/button_g4.svg",
           "light": "media/button_g4.svg"
@@ -94,7 +94,7 @@
       },
       {
         "command": "kanjiColorize.button.g5",
-        "title": "小学校の漢字: 5年生",
+        "title": "小・中学校の漢字: 5年生",
         "icon": {
           "dark": "media/button_g5.svg",
           "light": "media/button_g5.svg"
@@ -102,15 +102,23 @@
       },
       {
         "command": "kanjiColorize.button.g6",
-        "title": "小学校の漢字: 6年生",
+        "title": "小・中学校の漢字: 6年生",
         "icon": {
           "dark": "media/button_g6.svg",
           "light": "media/button_g6.svg"
         }
       },
       {
+        "command": "kanjiColorize.button.g7",
+        "title": "小・中学校の漢字: 中学生",
+        "icon": {
+          "dark": "media/button_g7.svg",
+          "light": "media/button_g7.svg"
+        }
+      },
+      {
         "command": "kanjiColorize.button.other",
-        "title": "小学校の漢字: 教育漢字外",
+        "title": "小・中学校の漢字: 常用漢字外",
         "icon": {
           "dark": "media/button_other.svg",
           "light": "media/button_other.svg"
@@ -165,6 +173,11 @@
           "when": "editorIsOpen && kanjiColorize.buttonLabel == 'g6'"
         },
         {
+          "command": "kanjiColorize.button.g7",
+          "group": "navigation@99",
+          "when": "editorIsOpen && kanjiColorize.buttonLabel == 'g7'"
+        },
+        {
           "command": "kanjiColorize.button.other",
           "group": "navigation@99",
           "when": "editorIsOpen && kanjiColorize.buttonLabel == 'other'"
@@ -212,10 +225,15 @@
           "default": "#d699ff",
           "description": "6年生の色"
         },
+        "kanjiColorize.colors.g7": {
+          "type": "string",
+          "default": "#ff99cc",
+          "description": "中学生の色"
+        },
         "kanjiColorize.colors.other": {
           "type": "string",
           "default": "#ef4444",
-          "description": "教育漢字以外（範囲外）の色（既定：赤）"
+          "description": "常用漢字以外（範囲外）の色（既定：赤）"
         },
         "kanjiColorize.textColor": {
           "type": "string",
