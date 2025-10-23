@@ -17,6 +17,7 @@ let debounceTimer: NodeJS.Timeout | null = null;
 let gradeByKanji: Map<string, GradeKey> = new Map();
 let statusItem: vscode.StatusBarItem | null = null;
 let gradeDefinitions: GradeDefinitions = getFallbackGradeDefinitions();
+let activeGradeQuickPick: vscode.QuickPick<vscode.QuickPickItem & { grade: GradeKey }> | null = null;
 
 const buttonCommandIds = {
   off: 'kanjiColorize.button.off',
@@ -289,29 +290,51 @@ export async function activate(context: vscode.ExtensionContext) {
 
   const configureGrades = async () => {
     type GradeQuickPickItem = vscode.QuickPickItem & { grade: GradeKey };
+    if (activeGradeQuickPick) {
+      activeGradeQuickPick.hide();
+      return;
+    }
+    const quickPick = vscode.window.createQuickPick<GradeQuickPickItem>();
+    activeGradeQuickPick = quickPick;
+    quickPick.canSelectMany = true;
+    quickPick.placeholder = '色付けを有効にする学年を選択してください';
     const items: GradeQuickPickItem[] = allGradeKeys.map(
       (grade): GradeQuickPickItem => ({
         label: gradeDefinitions[grade]?.label ?? grade,
-        picked: isGradeEnabled(grade),
+        picked: false,
         grade
       })
     );
-    const picked = await vscode.window.showQuickPick<GradeQuickPickItem>(items, {
-      canPickMany: true,
-      placeHolder: '色付けを有効にする学年を選択してください'
-    });
-    if (!picked) {
-      return;
-    }
-    const selected = new Set(picked.map(item => item.grade));
-    gradeVisibility = { ...gradeVisibility };
-    allGradeKeys.forEach(grade => {
-      gradeVisibility[grade] = selected.has(grade);
-    });
-    await saveGradeVisibility(context);
-    scheduleUpdate();
-    updateCursorStatus();
-    vscode.window.setStatusBarMessage('Kanji Colorize: 色付け対象を更新しました', 1600);
+    quickPick.items = items;
+    quickPick.selectedItems = items.filter(item => isGradeEnabled(item.grade));
+
+    const disposables: vscode.Disposable[] = [];
+    const cleanup = () => {
+      disposables.forEach(d => d.dispose());
+      quickPick.dispose();
+      if (activeGradeQuickPick === quickPick) {
+        activeGradeQuickPick = null;
+      }
+    };
+
+    disposables.push(quickPick.onDidAccept(async () => {
+      const selected = new Set(quickPick.selectedItems.map(item => item.grade));
+      gradeVisibility = { ...gradeVisibility };
+      allGradeKeys.forEach(grade => {
+        gradeVisibility[grade] = selected.has(grade);
+      });
+      await saveGradeVisibility(context);
+      scheduleUpdate();
+      updateCursorStatus();
+      vscode.window.setStatusBarMessage('Kanji Colorize: 色付け対象を更新しました', 1600);
+      quickPick.hide();
+    }));
+
+    disposables.push(quickPick.onDidHide(() => {
+      cleanup();
+    }));
+
+    quickPick.show();
   };
 
   context.subscriptions.push(
