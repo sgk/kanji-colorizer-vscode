@@ -3,6 +3,5 @@
 /node_modules
 /out
 
-# 動的生成されるアイコンファイル（学年用のみ）
-/media/button_g[0-9].svg
-/media/button_other.svg
+# 動的生成されるアイコン（学年用）
+/media/generated/

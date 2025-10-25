@@ -43,6 +43,8 @@ export async function generateGradeIcons(
   const vscode = await import('vscode');
   const cfg = vscode.workspace.getConfiguration('kanjiColorize');
   const textColor = resolveTextColor(cfg.get('textColor'));
+  const outDir = path.join(context.extensionPath, 'media', 'generated');
+  await fs.mkdir(outDir, { recursive: true });
   const tasks = allGradeKeys.map(async (grade: GradeKey) => {
     const def = definitions[grade];
     let svg: string;
@@ -55,7 +57,7 @@ export async function generateGradeIcons(
         : def.color;
       svg = createSvg({ fill, textColor, text: def.iconText });
     }
-    const target = path.join(context.extensionPath, 'media', `button_${grade}.svg`);
+    const target = path.join(outDir, `button_${grade}.svg`);
     await fs.writeFile(target, svg, 'utf8');
   });
   await Promise.all(tasks);
@@ -70,6 +72,8 @@ export async function generateGradeIconsCLI(): Promise<void> {
   // デフォルト設定で生成
   const definitions = loadGradeDefinitions(mockContext);
   const textColor = '#000000';
+  const outDir = path.join(extensionPath, 'media', 'generated');
+  await fs.mkdir(outDir, { recursive: true });
 
   const tasks = allGradeKeys.map(async (grade: GradeKey) => {
     const def = definitions[grade];
@@ -79,7 +83,7 @@ export async function generateGradeIconsCLI(): Promise<void> {
     } else {
       svg = createSvg({ fill: def.color, textColor, text: def.iconText });
     }
-    const target = path.join(extensionPath, 'media', `button_${grade}.svg`);
+    const target = path.join(outDir, `button_${grade}.svg`);
     await fs.writeFile(target, svg, 'utf8');
   });
   await Promise.all(tasks);

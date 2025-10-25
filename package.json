@@ -64,88 +64,88 @@
         "command": "kanjiColorize.button.g0",
         "title": "%command.g0.title%",
         "icon": {
-          "dark": "media/button_g0.svg",
-          "light": "media/button_g0.svg"
+          "dark": "media/generated/button_g0.svg",
+          "light": "media/generated/button_g0.svg"
         }
       },
       {
         "command": "kanjiColorize.button.g1",
         "title": "%command.g1.title%",
         "icon": {
-          "dark": "media/button_g1.svg",
-          "light": "media/button_g1.svg"
+          "dark": "media/generated/button_g1.svg",
+          "light": "media/generated/button_g1.svg"
         }
       },
       {
         "command": "kanjiColorize.button.g2",
         "title": "%command.g2.title%",
         "icon": {
-          "dark": "media/button_g2.svg",
-          "light": "media/button_g2.svg"
+          "dark": "media/generated/button_g2.svg",
+          "light": "media/generated/button_g2.svg"
         }
       },
       {
         "command": "kanjiColorize.button.g3",
         "title": "%command.g3.title%",
         "icon": {
-          "dark": "media/button_g3.svg",
-          "light": "media/button_g3.svg"
+          "dark": "media/generated/button_g3.svg",
+          "light": "media/generated/button_g3.svg"
         }
       },
       {
         "command": "kanjiColorize.button.g4",
         "title": "%command.g4.title%",
         "icon": {
-          "dark": "media/button_g4.svg",
-          "light": "media/button_g4.svg"
+          "dark": "media/generated/button_g4.svg",
+          "light": "media/generated/button_g4.svg"
         }
       },
       {
         "command": "kanjiColorize.button.g5",
         "title": "%command.g5.title%",
         "icon": {
-          "dark": "media/button_g5.svg",
-          "light": "media/button_g5.svg"
+          "dark": "media/generated/button_g5.svg",
+          "light": "media/generated/button_g5.svg"
         }
       },
       {
         "command": "kanjiColorize.button.g6",
         "title": "%command.g6.title%",
         "icon": {
-          "dark": "media/button_g6.svg",
-          "light": "media/button_g6.svg"
+          "dark": "media/generated/button_g6.svg",
+          "light": "media/generated/button_g6.svg"
         }
       },
       {
         "command": "kanjiColorize.button.g7",
         "title": "%command.g7.title%",
         "icon": {
-          "dark": "media/button_g7.svg",
-          "light": "media/button_g7.svg"
+          "dark": "media/generated/button_g7.svg",
+          "light": "media/generated/button_g7.svg"
         }
       },
       {
         "command": "kanjiColorize.button.g8",
         "title": "%command.g8.title%",
         "icon": {
-          "dark": "media/button_g8.svg",
-          "light": "media/button_g8.svg"
+          "dark": "media/generated/button_g8.svg",
+          "light": "media/generated/button_g8.svg"
         }
       },
       {
         "command": "kanjiColorize.button.g9",
         "title": "%command.g9.title%",
         "icon": {
-          "dark": "media/button_g9.svg",
-          "light": "media/button_g9.svg"
+          "dark": "media/generated/button_g9.svg",
+          "light": "media/generated/button_g9.svg"
         }
       },
       {
         "command": "kanjiColorize.button.other",
         "title": "%command.other.title%",
         "icon": {
-          "dark": "media/button_other.svg",
-          "light": "media/button_other.svg"
+          "dark": "media/generated/button_other.svg",
+          "light": "media/generated/button_other.svg"
         }
       }
     ],
