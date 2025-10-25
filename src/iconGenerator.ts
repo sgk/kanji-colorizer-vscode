@@ -1,6 +1,6 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import * as vscode from 'vscode';
+import type { ExtensionContext } from 'vscode';
 
 import { allGradeKeys, GradeDefinitions, GradeKey } from './gradeConfig';
 
@@ -35,9 +35,12 @@ function createEmptySvg(): string {
 }
 
 export async function generateGradeIcons(
-  context: vscode.ExtensionContext,
+  context: ExtensionContext,
   definitions: GradeDefinitions
 ): Promise<void> {
+  // vscode モジュールは実行環境（拡張ホスト）でのみ存在するため
+  // CLI 用ビルド時に top-level で require されないよう動的 import にする
+  const vscode = await import('vscode');
   const cfg = vscode.workspace.getConfiguration('kanjiColorize');
   const textColor = resolveTextColor(cfg.get('textColor'));
   const tasks = allGradeKeys.map(async (grade: GradeKey) => {
@@ -62,7 +65,7 @@ export async function generateGradeIcons(
 export async function generateGradeIconsCLI(): Promise<void> {
   const { loadGradeDefinitions } = await import('./gradeConfig');
   const extensionPath = path.resolve(__dirname, '..');
-  const mockContext = { extensionPath } as vscode.ExtensionContext;
+  const mockContext = { extensionPath } as ExtensionContext;
 
   // デフォルト設定で生成
   const definitions = loadGradeDefinitions(mockContext);
