@@ -63,11 +63,11 @@ export async function generateGradeIconsCLI(): Promise<void> {
   const { loadGradeDefinitions } = await import('./gradeConfig');
   const extensionPath = path.resolve(__dirname, '..');
   const mockContext = { extensionPath } as vscode.ExtensionContext;
-  
+
   // デフォルト設定で生成
   const definitions = loadGradeDefinitions(mockContext);
   const textColor = '#000000';
-  
+
   const tasks = allGradeKeys.map(async (grade: GradeKey) => {
     const def = definitions[grade];
     let svg: string;
