@@ -252,7 +252,8 @@
   "scripts": {
     "compile": "tsc -w",
     "build": "tsc",
-    "vscode:prepublish": "npm run build"
+    "generate-icons": "node -e \"require('./out/iconGenerator').generateGradeIconsCLI()\"",
+    "vscode:prepublish": "npm run build && npm run generate-icons"
   },
   "keywords": [
     "kanji",

@@ -57,3 +57,28 @@ export async function generateGradeIcons(
   });
   await Promise.all(tasks);
 }
+
+// CLI用：ビルド時にアイコンを生成
+export async function generateGradeIconsCLI(): Promise<void> {
+  const { loadGradeDefinitions } = await import('./gradeConfig');
+  const extensionPath = path.resolve(__dirname, '..');
+  const mockContext = { extensionPath } as vscode.ExtensionContext;
+  
+  // デフォルト設定で生成
+  const definitions = loadGradeDefinitions(mockContext);
+  const textColor = '#000000';
+  
+  const tasks = allGradeKeys.map(async (grade: GradeKey) => {
+    const def = definitions[grade];
+    let svg: string;
+    if (!def) {
+      svg = createEmptySvg();
+    } else {
+      svg = createSvg({ fill: def.color, textColor, text: def.iconText });
+    }
+    const target = path.join(extensionPath, 'media', `button_${grade}.svg`);
+    await fs.writeFile(target, svg, 'utf8');
+  });
+  await Promise.all(tasks);
+  console.log('Generated grade icons successfully.');
+}
