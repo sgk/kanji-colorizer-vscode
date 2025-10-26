@@ -300,6 +300,8 @@ export async function activate(context: vscode.ExtensionContext) {
     const key = editor.document.uri.toString();
     if (enabledFiles.has(key)) {
       enabledFiles.delete(key);
+      // クイックピックが開いている場合は閉じる
+      activeGradeQuickPick?.hide();
       clearAllDecorations(editor);
       statusItem?.hide();
       setButtonLabel('off');
